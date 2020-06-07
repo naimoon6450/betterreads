@@ -6,6 +6,7 @@ Original package didn't handle OAuth properly, so I made changes to make the red
 Currently, once you're loggin in Goodreads, you will be logged in the app.
 
 Requirements:
+
 - Need to have a login / authorize route for it to work properly
 - Need to have a callback url prepared to send through: 
 
