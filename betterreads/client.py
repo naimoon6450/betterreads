@@ -10,6 +10,7 @@ from betterreads.request import GoodreadsRequest
 from betterreads.review import GoodreadsReview
 from betterreads.session import GoodreadsSession
 from betterreads.user import GoodreadsUser
+from rauth.utils import parse_utf8_qsl
 
 
 class GoodreadsClientException(Exception):
@@ -31,6 +32,24 @@ class GoodreadsClient:
     @property
     def query_dict(self):
         return {"key": self.client_key}
+    
+    def auth_finalize(self, token, sec_token):
+        self.session.oauth_fin(token, sec_token)
+
+    def authenticate_with_callback(self, params=None, access_token=None, access_token_secret=None):
+        # creates the session here
+        self.session = GoodreadsSession(
+            self.client_key, self.client_secret, access_token, access_token_secret
+        )
+        if access_token and access_token_secret:
+            self.session.oauth_resume()
+        else:
+            self.session.oauth_with_callback() # creates the service attribute on the session
+            raw_token = self.session.service.get_raw_request_token(params=dict(params))
+            data = parse_utf8_qsl(raw_token.content)
+            redir_uri = self.session.service.get_authorize_url(data['oauth_token'], **params)
+            # return the data to put token on and redir url
+            return data, redir_uri
 
     def authenticate(self, access_token=None, access_token_secret=None):
         """Authenticate client to query requiring authorization"""
